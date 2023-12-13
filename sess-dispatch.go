@@ -2,21 +2,15 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
-	"github.com/quic-go/quic-go/logging"
-	"github.com/quic-go/quic-go/qlog"
 	"github.com/sirupsen/logrus"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
-	"quic_client/utils"
 	"strconv"
 	"sync"
 	"time"
@@ -106,15 +100,15 @@ func (this *SessDispatch) do() {
 		})
 
 		var qconf quic.Config
-		qconf.Tracer = func(ctx context.Context, p logging.Perspective, connID quic.ConnectionID) *logging.ConnectionTracer {
-			filename := fmt.Sprintf("client_%s.qlog", connID)
-			f, err := os.Create(filename)
-			if err != nil {
-				log.Fatal(err)
-			}
-			log.Printf("Creating qlog file %s.\n", filename)
-			return qlog.NewConnectionTracer(utils.NewBufferedWriteCloser(bufio.NewWriter(f), f), p, connID)
-		}
+		//qconf.Tracer = func(ctx context.Context, p logging.Perspective, connID quic.ConnectionID) *logging.ConnectionTracer {
+		//	filename := fmt.Sprintf("client_%s.qlog", connID)
+		//	f, err := os.Create(filename)
+		//	if err != nil {
+		//		log.Fatal(err)
+		//	}
+		//	log.Printf("Creating qlog file %s.\n", filename)
+		//	return qlog.NewConnectionTracer(utils.NewBufferedWriteCloser(bufio.NewWriter(f), f), p, connID)
+		//}
 
 		roundTripper := &http3.RoundTripper{
 			TLSClientConfig: &tls.Config{
