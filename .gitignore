@@ -1,4 +1,5 @@
 index.html
 .idea/
-.log
-.exe
+*.log
+*.exe
+*.qlog

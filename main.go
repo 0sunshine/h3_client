@@ -1,22 +1,12 @@
 package main
 
 import (
-	"bufio"
-	"context"
-	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/quic-go/quic-go"
-	"github.com/quic-go/quic-go/http3"
-	"github.com/quic-go/quic-go/logging"
-	"github.com/quic-go/quic-go/qlog"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"log"
-	"net/http"
 	"os"
 	"os/signal"
-	"quic_client/utils"
 	"syscall"
 )
 
@@ -78,7 +68,7 @@ func waitForQuit() {
 	fmt.Println("quit ....")
 }
 
-var h3Client *http.Client = nil
+var certPool *x509.CertPool = nil
 
 func main() {
 	err := LoadConf()
@@ -99,67 +89,7 @@ func main() {
 		return
 	}
 
-	var qconf quic.Config
-	qconf.Tracer = func(ctx context.Context, p logging.Perspective, connID quic.ConnectionID) *logging.ConnectionTracer {
-		filename := fmt.Sprintf("client_%s.qlog", connID)
-		f, err := os.Create(filename)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("Creating qlog file %s.\n", filename)
-		return qlog.NewConnectionTracer(utils.NewBufferedWriteCloser(bufio.NewWriter(f), f), p, connID)
-	}
-
-	roundTripper := &http3.RoundTripper{
-		TLSClientConfig: &tls.Config{
-			RootCAs:            certPool,
-			InsecureSkipVerify: true,
-		},
-		QuicConfig: &qconf,
-	}
-
-	defer roundTripper.Close()
-	h3Client = &http.Client{
-		Transport: roundTripper,
-	}
-
 	DoSessDispatch()
-
-	//var wg sync.WaitGroup
-	//wg.Add(len(urls))
-	//
-	//for _, addr := range urls {
-	//	go func(addr string) {
-	//		defer wg.Done()
-	//
-	//		resp, err := h3Client.Get(addr)
-	//		if err != nil {
-	//			log.Fatal(err)
-	//			return
-	//		}
-	//
-	//		defer resp.Body.Close()
-	//
-	//		if resp.StatusCode != http.StatusOK {
-	//			logrus.Error("Failed to download: ", addr, ", HTTP Status Code: ", resp.StatusCode)
-	//			return
-	//		}
-	//
-	//		buf := make([]byte, 1024*64) //64k
-	//		for {
-	//			_, err := resp.Body.Read(buf)
-	//			if err == io.EOF {
-	//				break
-	//			} else if err != nil {
-	//				logrus.Error("Failed to download: ", addr, ", err: ", err)
-	//				return
-	//			}
-	//		}
-	//		logrus.Debug("download ok: ", addr)
-	//	}(addr)
-	//}
-	//
-	//wg.Wait()
 
 	waitForQuit()
 	logrus.Info("exit.......")

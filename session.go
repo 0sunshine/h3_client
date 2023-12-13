@@ -14,6 +14,7 @@ import (
 )
 
 type Session struct {
+	httpClient   *http.Client
 	id           string
 	currUrl      string
 	limitRate    int64
@@ -43,7 +44,7 @@ type TsSegment struct {
 func (sess *Session) doDownloadTs(ts_url string) error {
 	logrus.Info("id:[", sess.id, "]--download ts: ", ts_url)
 
-	resp, err := h3Client.Get(ts_url)
+	resp, err := sess.httpClient.Get(ts_url)
 	if err != nil {
 		logrus.Error("id:[", sess.id, "]--Error downloading: ", err)
 		return err
@@ -76,7 +77,7 @@ func (sess *Session) doDownloadTs(ts_url string) error {
 }
 
 func (sess *Session) doDownloadUrl() error {
-	resp, err := h3Client.Get(sess.currUrl)
+	resp, err := sess.httpClient.Get(sess.currUrl)
 	if err != nil {
 		logrus.Error(err)
 		return err
